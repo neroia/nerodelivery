@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravar no Firebase</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAPYdZ0Ku-P9LvFtb2oXgi6FFHwgiLUb6w",
+            authDomain: "nerodelivery-bea3c.firebaseapp.com",
+            projectId: "nerodelivery-bea3c",
+            storageBucket: "nerodelivery-bea3c.appspot.com",
+            databaseURL: "https://nerodelivery-bea3c-default-rtdb.firebaseio.com/",
+            messagingSenderId: "123417290337",
+            appId: "1:123417290337:web:14f2a3865d74ca27dd6c20",
+            measurementId: "G-X7NQ9J7LJN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        function gravarDados() {
+            const nomeProduto = document.getElementById('nome').value;
+            const precoProduto = document.getElementById('preco').value;
+            const descricaoProduto = document.getElementById('descricao').value;
+            const categoriaProduto = document.getElementById('categoria').value;
+            const fotoProduto = document.getElementById('foto').files[0];
+
+            if (!nomeProduto || !precoProduto || !categoriaProduto || !fotoProduto) {
+                alert("Por favor, preencha todos os campos e selecione uma imagem.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(fotoProduto);
+
+            reader.onloadend = function () {
+                const imagemBase64 = reader.result;
+
+                // Gerar ID único no formato `nrw...`
+                const uniqueID = `nrw_${Date.now()}`;
+
+                const produtoRef = ref(db, `produtos/${uniqueID}`);
+                set(produtoRef, {
+                    id: uniqueID,
+                    nome: nomeProduto,
+                    preco: parseFloat(precoProduto).toFixed(2), // Formata o preço para duas casas decimais
+                    descricao: descricaoProduto,
+                    categoria: categoriaProduto,
+                    imagem64: imagemBase64
+                }).then(() => {
+                    alert('Produto gravado com sucesso!');
+                    limparFormulario();
+                }).catch((error) => {
+                    console.error("Erro ao gravar no Firebase: ", error);
+                });
+            };
+        }
+
+        function limparFormulario() {
+            document.getElementById('nome').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('descricao').value = '';
+            document.getElementById('categoria').value = '';
+            document.getElementById('foto').value = '';
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const botaoGravar = document.querySelector("button");
+            botaoGravar.addEventListener("click", gravarDados);
+        });
+    </script>
+</head>
+<body>
+    <h1>Adicionar Produto</h1>
+    <form id="form-produto">
+        <label for="nome">Nome do Produto:</label>
+        <input type="text" id="nome" placeholder="Nome do Produto">
+        <br>
+        <label for="preco">Preço:</label>
+        <input type="number" id="preco" placeholder="Preço do Produto" step="0.01">
+        <br>
+        <label for="descricao">Descrição:</label>
+        <input type="text" id="descricao" placeholder="Descrição do Produto">
+        <br>
+        <label for="categoria">Categoria:</label>
+        <select name="categoria" id="categoria">
+            <option value="bebidas">Bebidas</option>
+            <option value="hamburguer">Hamburguer</option>
+            <option value="petisco">Petisco</option>
+            <option value="outros">Outros</option>
+        </select>
+        <br>
+        <label for="foto">Foto do Produto:</label>
+        <input type="file" id="foto" accept="image/*">
+        <br><br>
+        <button type="button">Gravar Produto</button>
+    </form>
+</body>
+</html>
+
+
